@@ -10,7 +10,7 @@ which can also be user-defined."
 
 # Any non-closed lisesce requires checksum
 # TODO: Lisense should be updated to use the Julia license included in the downloaded files
-LICENSE = "CLOSED"
+LICENSE = "MIT"
 
 JULIA_VERSION="1.6.7"
 JULIA_ARCH="aarch64"
@@ -18,17 +18,17 @@ JULIA_RELEASE="1.6"
 
 # Yocto will download and extract the uri. the sha256sum is required to validate.
 SRC_URI = "https://julialang-s3.julialang.org/bin/linux/${JULIA_ARCH}/${JULIA_RELEASE}/julia-${JULIA_VERSION}-linux-${JULIA_ARCH}.tar.gz"
-#SRC_URI[sha256sum] = "8746d561cbe35e1b83739a84b2637a1d2348728b1d94d76629ad98ff76da6cea"
-case "$JULIA_ARCH" in
-  aarch64) _pkgarch="aarch64"
-    #SRC_URI = "https://julialang-s3.julialang.org/bin/linux/${JULIA_ARCH}/${JULIA_RELEASE}/julia-${JULIA_VERSION}-linux-${JULIA_ARCH}.tar.gz"
-    SRC_URI[sha256sum] = "8746d561cbe35e1b83739a84b2637a1d2348728b1d94d76629ad98ff76da6cea"
-    ;;
-  x86_64) _pkgarch="x64"
-    #SRC_URI = "https://julialang-s3.julialang.org/bin/linux/${JULIA_ARCH}/${JULIA_RELEASE}/julia-${JULIA_VERSION}-linux-${JULIA_ARCH}.tar.gz"
-    SRC_URI[sha256sum] = "6c4522d595e4cbcd00157ac458a72f8aec01757053d2073f99daa39e442b2a36"
-    ;;
-esac
+SRC_URI[sha256sum] = "8746d561cbe35e1b83739a84b2637a1d2348728b1d94d76629ad98ff76da6cea"
+#case "$JULIA_ARCH" in
+#  aarch64) _pkgarch="aarch64"
+#    #SRC_URI = "https://julialang-s3.julialang.org/bin/linux/${JULIA_ARCH}/${JULIA_RELEASE}/julia-${JULIA_VERSION}-linux-${JULIA_ARCH}.tar.gz"
+#    SRC_URI[sha256sum] = "8746d561cbe35e1b83739a84b2637a1d2348728b1d94d76629ad98ff76da6cea"
+#    ;;
+#  x86_64) _pkgarch="x64"
+#    #SRC_URI = "https://julialang-s3.julialang.org/bin/linux/${JULIA_ARCH}/${JULIA_RELEASE}/julia-${JULIA_VERSION}-linux-${JULIA_ARCH}.tar.gz"
+#    SRC_URI[sha256sum] = "6c4522d595e4cbcd00157ac458a72f8aec01757053d2073f99daa39e442b2a36"
+#    ;;
+#esac
 
 # The vendor will typically ship release builds without debug symbols.
 # Avoid errors by preventing the packaging task from stripping out the symbols and adding them to a separate debug package.
