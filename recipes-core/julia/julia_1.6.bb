@@ -16,9 +16,11 @@ JULIA_VERSION="1.6"
 JULIA_ARCH="aarch64"
 JULIA_RELEASE="1.6.7"
 
+SHA256[aarch64] = "8746d561cbe35e1b83739a84b2637a1d2348728b1d94d76629ad98ff76da6cea"
+
 # Yocto will download and extract the uri. the sha256sum is required to validate.
 SRC_URI = "https://julialang-s3.julialang.org/bin/linux/${JULIA_ARCH}/${JULIA_VERSION}/julia-${JULIA_RELEASE}-linux-${JULIA_ARCH}.tar.gz"
-SRC_URI[sha256sum] = "e6c6a0eba5546b6f8b9cdd4d303517f94e0892056c20d89faf86ee1678aab917"
+SRC_URI[sha256sum] = ${SHA256[JULIA_ARCH]}
 
 # The vendor will typically ship release builds without debug symbols.
 # Avoid errors by preventing the packaging task from stripping out the symbols and adding them to a separate debug package.
