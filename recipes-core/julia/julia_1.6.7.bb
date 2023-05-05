@@ -32,109 +32,132 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 # already-stripped - for libexec/7z
 # ldflags - the checksum for this package is different from the julia lib checksum
 # dev-so - allow symlink .so files to be added in a non-dev package
-INSANE_SKIP_${PN} += "already-stripped ldflags dev-so"
-INSANE_SKIP_${PN}-dev += "already-stripped ldflags"
+INSANE_SKIP:${PN} += "already-stripped ldflags dev-so"
+INSANE_SKIP:${PN}-dev += "already-stripped ldflags"
 
 # specify dependancies
 DEPENDS += "libgcc gcc-runtime"
-RDEPENDS_${PN} += "libgcc libstdc++"
+RDEPENDS:${PN} += "libgcc libstdc++"
 
 # specify the order for packages to be created in
 PACKAGES = "${PN}-dbg ${PN} ${PN}-doc ${PN}-dev"
 
-base_prefic = "/opt/${PN}"
+# set the base_prefix
+base_prefix = "/opt/julia"
 
-do_install() { 
-    # Install `includedir` as `/opt/julia/include`
-    install -d ${D}${includedir}
-    ## install julia headers
-    cp -R --no-dereference --preserve=mode,links -v ${S}/include/julia/* ${D}${includedir}/
-
-    # Install `datadir` as `/usr/share`
+do_install() {
+    ## install base directories
+    install -d ${D}${bindir} # /opt/julia/bin
+    install -d ${D}${sysconfdir} # /opt/julia/etc
+    install -d ${D}${includedir} # /opt/jula/include
+    install -d ${D}${libdir} # /opt/julia/lib
+    install -d ${D}${libdir}/${PN}
+    install -d ${D}${libexecdir} # /opt/julia/libexec 
     install -d ${D}${datadir} # /usr/share
-    ## install julia data files
-    cp -R --no-dereference --preserve=mode,links -v ${S}/share/* ${D}${datadir}/
-     
-    # Install `sysconfdir` as `/opt/julia/etc`
-    install -d ${D}${sysconfdir}
-    ## install system configs
-    install -m 0755 ${S}/etc/julia/* ${D}${sysconfdir}/
-    
-    # Install `libexecdir` as `/usr/libexec` 
-    install -d ${D}${libexecdir}
-    ## install internal application libraries
-    install -m 0755 ${S}/libexec/7z ${D}${libexecdir}/7z
-    
-    # Install `libdir` as `/usr/lib`
-    install -d ${D}${libdir}
-    ## install external application libraries
+    install -d ${D}${docdir}
+    install -d ${D}${mandir}
+    #install -d ${D}${datadir}/${PN} # /usr/share/julia
+
+    # install julia libs
+    oe_soinstall ${S}/lib/julia/libamd.so.2.4.6 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libatomic.so.1.2.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libbtf.so.1.2.6 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libcamd.so.2.4.6 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libccolamd.so.2.9.6 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libcholmod.so.3.0.13 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libcolamd.so.2.9.6 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libcurl.so.4.7.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libgfortran.so.4.0.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libgit2.so.1.1.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libgmp.so.10.4.1 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libgmpxx.so.4.6.1 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libgomp.so.1.0.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libjulia-internal.so.1.6 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libklu.so.1.3.8 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libldl.so.2.2.6 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libmbedcrypto.so.2.24.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libmbedtls.so.2.24.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libmbedx509.so.2.24.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libmpfr.so.6.1.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libnghttp2.so.14.20.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libopenlibm.so.3.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libpcre2-8.so.0.11.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/librbio.so.2.2.6 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libspqr.so.2.0.9 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libssh2.so.1.0.1 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libssp.so.0.0.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libsuitesparseconfig.so.5.4.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libumfpack.so.5.7.8 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libunwind.so.8.0.1 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libuv.so.2.0.0 ${D}${libdir}/${PN}
+    oe_soinstall ${S}/lib/julia/libz.so.1.2.12 ${D}${libdir}/${PN}
+
+    # install versioned debug libs
+    install -m 0755 ${S}/lib/julia/libccalltest.so.debug ${D}${libdir}/${PN}
+
+    # install non-versioned libs
+    install -m 0755 ${S}/lib/julia/sys.so ${D}${libdir}/${PN}
+    install -m 0755 ${S}/lib/julia/libLLVM-11jl.so ${D}${libdir}/${PN}
+    install -m 0755 ${S}/lib/julia/libdSFMT.so ${D}${libdir}/${PN}
+    install -m 0755 ${S}/lib/julia/libccalltest.so ${D}${libdir}/${PN}
+    install -m 0755 ${S}/lib/julia/libllvmcalltest.so ${D}${libdir}/${PN}
+    install -m 0755 ${S}/lib/julia/libsuitesparse_wrapper.so ${D}${libdir}/${PN}
+
+    # install the system libraries
     oe_libinstall libgcc ${D}${libdir}/${PN}
     oe_libinstall libstdc++ ${D}${libdir}/${PN}
-    ### link OS packages to the julia lib dir
-    lnr ${D}/lib/libgcc_s.so.1 ${D}${libdir}/${PN}/libgcc_s.so.1
-    lnr ${D}/lib/libgcc_s.so ${D}${libdir}/${PN}/libgcc_s.so
-    lnr ${D}/lib/libstdc++.so ${D}${libdir}/${PN}/libstdc++.so
-    lnr ${D}/lib/libstdc++.so.6 ${D}${libdir}/${PN}/libstdc++.so.6
 
-    # Install `libdir/PN` libs as `/usr/lib/julia`
-    install -d ${D}${libdir}/${PN}
-    ## install julia application libraries
-    ### lookup libs
-    install -d -m 0755 ${WORKDIR}/${PN}lib
-    find ${S}/lib/${PN} -type f -name *.so* -exec cp -R --no-dereference --preserve=mode,links -v {} ${WORKDIR}/${PN}lib \;
-    ### install non-versioned libs
-    install -m 0755 ${WORKDIR}/${PN}lib/*.so ${D}${libdir}/${PN}
-    ### install versioned libs
-    so_oeinstall ${WORKDIR}/${PN}lib/*.so.* ${D}${libdir}/${PN}
-    # TODO: does this need to be 'cleaned up' rm -rf ${WORKDIR}/${PN}lib
-    
-    ## install julia linked libraries
-    ### lookup libs
-    install -d -m 0755 ${WORKDIR}/${PN}lib-dev
-    find ${S}/lib/${PN} -type l -name *.so* -exec cp -R --no-dereference --preserve=mode,links -v {} ${WORKDIR}/${PN}lib \;
-    ### install linked libs
-    cp -R --no-dereference --preserve=mode,links -v ${WORKDIR}/${PN}lib-dev/* ${D}${libdir}/${PN}
-    # TODO: does this need to be 'cleaned up' rm -rf ${WORKDIR}/${PN}lib-dev
-    
-    # TODO: does this still need to be done?
-    ## handle special cases
-    ### install openblas
-    #cp --no-dereference --preserve=mode,links -v ${S}/lib/julia/libopenblas.0.3.10.so ${S}/lib/julia/libopenblas.so.0.3.10
-    #oe_soinstall ${S}/lib/julia/libopenblas.so.0.3.10 ${D}${libdir}/${PN}
-    ### link julia packages in julia lib
-    #lnr ${D}/lib/${PN}/libLLVM-11jl.so ${D}${libdir}/${PN}/libLLVM.so
-    
-    ## install julia libraries
-    install -m 0755 ${S}/lib/libjulia.so ${D}${libdir}
-    install -m 0755 ${S}/lib/libjulia.so.1 ${D}${libdir}
-    so_oeinstall ${S}/lib/libjulia.so.1.6 ${D}${libdir}
+    # install the julia library to the lib
+    oe_soinstall ${S}/lib/libjulia.so.1.6 ${D}${libdir}
 
-    # Install `bindir` as `/usr/bin`
-    install -d ${D}${bindir}
-    ## install julia binary
+    # link OS packages to the julia lib dir
+    ln -sr ${D}/lib/libgcc_s.so.1 ${D}${libdir}/${PN}/libgcc_s.so.1
+    ln -sr ${D}/lib/libgcc_s.so ${D}${libdir}/${PN}/libgcc_s.so
+    ln -sr ${D}/lib/libstdc++.so ${D}${libdir}/${PN}/libstdc++.so
+    ln -sr ${D}/lib/libstdc++.so.6 ${D}${libdir}/${PN}/libstdc++.so.6
+
+    # install openblas
+    cp --no-dereference --preserve=mode,links -v ${S}/lib/julia/libopenblas.0.3.10.so ${S}/lib/julia/libopenblas.so.0.3.10
+    oe_soinstall ${S}/lib/julia/libopenblas.so.0.3.10 ${D}${libdir}/${PN}
+
+    # link julia packages in julia lib
+    ln -sr ${D}/lib/${PN}/libLLVM-11jl.so ${D}${libdir}/${PN}/libLLVM.so
+
+    # install internal system application
+    install -m 0755 ${S}/libexec/7z ${D}${libexecdir}/
+
+    # install configuration file
+    install -m 0755 ${S}/etc/julia/startup.jl ${D}${sysconfdir}/startup.jl
+
+    # copy data dirs for julia
+    cp -R --no-dereference --preserve=mode,links -v ${S}/share/julia ${D}${datadir}/julia
+    cp -R --no-dereference --preserve=mode,links -v ${S}/share/doc/julia ${D}${docdir}/julia
+    # install data files for julia
+    cp -R --no-dereference --preserve=mode,links -v ${S}/share/appdata ${D}${datadir}/appdata
+    cp -R --no-dereference --preserve=mode,links -v ${S}/share/applications ${D}${datadir}/applications
+    cp -R --no-dereference --preserve=mode,links -v ${S}/share/man/man1/* ${D}${mandir}/
+
+    # copy over the included julia files
+    cp -R --no-dereference --preserve=mode,links -v ${S}/include/julia ${D}${includedir}/julia
+
+    # install the binary for julia
     install -m 0755 ${S}/bin/julia ${D}${bindir}
-    
+
     # Install `/etc/profile.d` for julia system configuration
     install -d ${D}/etc/profile.d
     ## create profile file and set important variables
     echo "export JULIA_BINDIR='/usr/bin'" > ${WORKDIR}/julia.sh
     echo "export JULIA_DEPOT_PATH='/var/opt/julia'" >> ${WORKDIR}/julia.sh
     # install julia profile
-    install -m 0755 ${WORKDIR}/julia.sh ${D}/etc/profile.d/julia.sh
+    install -Dm 0755 ${WORKDIR}/julia.sh ${D}/etc/profile.d/
 }
 
 # specifiy the files for each package
 ## Debug Packages
-FILES_${PN}-dbg += ""
+FILES:${PN}-dbg += ""
 ## Base Packages
-FILES_${PN} += "${includedir} \
-        ${datadir} \
-        ${sysconfdir} \
-        ${libexecdir} \
-        ${libdir} \
-        ${bindir} \
-        /etc/profile.d"
+FILES:${PN} += "/etc/profile.d/julia.sh ${datadir}/appdata"
 ## Docs Packages
-FILES_${PN}-doc += ""
+FILES:${PN}-doc += ""
 ## Development Packages
-FILES_${PN}-dev += ""
+FILES:${PN}-dev += ""
