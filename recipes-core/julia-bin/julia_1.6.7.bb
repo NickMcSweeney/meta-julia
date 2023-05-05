@@ -18,66 +18,57 @@ JULIA_ARCH="aarch64"
 JULIA_RELEASE="1.6" 
 
 # Yocto will download and extract the uri. the sha256sum is required to validate.
-SRC_URI = "https://github.com/JuliaLang/julia/archive/refs/tags/v1.6.7.tar.gz"
-SRC_URI[sha256sum] = "384d039d96b33f463c5551446a80ee8f56b23526d9870633576f8f63fe919001"
+SRC_URI = "https://julialang-s3.julialang.org/bin/linux/${JULIA_ARCH}/${JULIA_RELEASE}/julia-${JULIA_VERSION}-linux-${JULIA_ARCH}.tar.gz"
+SRC_URI[sha256sum] = "8746d561cbe35e1b83739a84b2637a1d2348728b1d94d76629ad98ff76da6cea"
 
 # The vendor will typically ship release builds without debug symbols.
 # Avoid errors by preventing the packaging task from stripping out the symbols and adding them to a separate debug package.
 # This is done by setting the 'INHIBIT' flags shown below.
-#INHIBIT_PACKAGE_STRIP = "1"
-#INHIBIT_SYSROOT_STRIP = "1"
-#INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
+INHIBIT_PACKAGE_STRIP = "1"
+INHIBIT_SYSROOT_STRIP = "1"
+INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 
 # skip qa sections
 # already-stripped - for libexec/7z
 # ldflags - the checksum for this package is different from the julia lib checksum
 # dev-so - allow symlink .so files to be added in a non-dev package
-#INSANE_SKIP:${PN} += "already-stripped ldflags dev-so"
-#INSANE_SKIP:${PN}-dev += "already-stripped ldflags"
+INSANE_SKIP:${PN} += "already-stripped ldflags dev-so"
+INSANE_SKIP:${PN}-dev += "already-stripped ldflags"
 
 # specify dependancies
-# GNU make — building dependencies.
-# gcc & g++ (>= 5.1) or Clang (>= 3.5, >= 6.0 for Apple Clang) — compiling and linking C, C++.
-# libatomic — provided by gcc and needed to support atomic operations.
-# python (>=2.7) — needed to build LLVM.
-# gfortran — compiling and linking Fortran libraries.
-# perl— preprocessing of header files of libraries.
-# wget, curl, or fetch (FreeBSD) — to automatically download external libraries.
-# m4 — needed to build GMP.
-# awk — helper tool for Makefiles.
-# patch — for modifying source code.
-# cmake (>= 3.4.3) — needed to build libgit2.
-# pkg-config — needed to build libgit2 correctly, especially for proxy support.
-# powershell (>= 3.0) — necessary only on Windows.
-# which — needed for checking build dependencies.
-
-DEPENDS += "make libgcc gcc-runtime libatomic python gfortran perl wget awk m4 patch cmake pkg-config which"
+DEPENDS += "libgcc gcc-runtime"
 RDEPENDS:${PN} += "libgcc libstdc++"
 
 # specify the order for packages to be created in
 PACKAGES = "${PN}-dbg ${PN} ${PN}-doc ${PN}-dev"
 
-do_compile() {
-   make -j 6 
-}
+# set the base_prefix
+base_prefix = "/opt"
 
 do_install() {
-    # TODO: copy files over
+    ## install base directories
+    install -d ${D}${base_prefix} # /opt
+    
+    # copy over the julia files
+    cp -R --no-dereference --preserve=mode,links -v ${S} ${D}${base_prefix}/${PN}
+
+    # install the binary for julia
+    ln -sr ${D}${base_prefix}/${PN}/bin/julia ${D}${bindir}/${PN}
 
     # Install `/etc/profile.d` for julia system configuration
     install -d ${D}/etc/profile.d
     ## create profile file and set important variables
-    echo "export JULIA_BINDIR='/usr/bin'" > ${WORKDIR}/julia.sh
-    echo "export JULIA_DEPOT_PATH='/var/opt/julia'" >> ${WORKDIR}/julia.sh
+    echo "export JULIA_BINDIR='/usr/bin'" > ${WORKDIR}/${PN}.sh
+    echo "export JULIA_DEPOT_PATH='/var/opt/${PN}'" >> ${WORKDIR}/${PN}.sh
     # install julia profile
-    install -Dm 0755 ${WORKDIR}/julia.sh ${D}/etc/profile.d/
+    install -Dm 0755 ${WORKDIR}/${PN}.sh ${D}/etc/profile.d/
 }
 
 # specifiy the files for each package
 ## Debug Packages
 FILES:${PN}-dbg += ""
 ## Base Packages
-FILES:${PN} += "/etc/profile.d/julia.sh ${datadir}/appdata"
+FILES:${PN} += "/etc/profile.d/${PN}.sh ${base_prefix}/${PN}"
 ## Docs Packages
 FILES:${PN}-doc += ""
 ## Development Packages
