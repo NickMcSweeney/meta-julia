@@ -21,37 +21,16 @@ JULIA_RELEASE="1.6"
 SRC_URI = "https://julialang-s3.julialang.org/bin/linux/${JULIA_ARCH}/${JULIA_RELEASE}/julia-${JULIA_VERSION}-linux-${JULIA_ARCH}.tar.gz"
 SRC_URI[sha256sum] = "8746d561cbe35e1b83739a84b2637a1d2348728b1d94d76629ad98ff76da6cea"
 
-# The vendor will typically ship release builds without debug symbols.
-# Avoid errors by preventing the packaging task from stripping out the symbols and adding them to a separate debug package.
-# This is done by setting the 'INHIBIT' flags shown below.
-INHIBIT_PACKAGE_STRIP = "1"
-INHIBIT_SYSROOT_STRIP = "1"
-INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
-
-# skip qa sections
-# already-stripped - for libexec/7z
-# ldflags - the checksum for this package is different from the julia lib checksum
-# dev-so - allow symlink .so files to be added in a non-dev package
-INSANE_SKIP:${PN} += "already-stripped ldflags dev-so"
-INSANE_SKIP:${PN}-dev += "already-stripped ldflags"
-
-# specify dependancies
-DEPENDS += "libgcc gcc-runtime"
-RDEPENDS:${PN} += "libgcc libstdc++"
-
-# specify the order for packages to be created in
-PACKAGES = "${PN}-dbg ${PN} ${PN}-doc ${PN}-dev"
-
 # set the base_prefix
 base_prefix = "/opt"
 
 do_install() {
     ## install base directories
     install -d ${D}${base_prefix} # /opt
-    
     # copy over the julia files
     cp -R --no-dereference --preserve=mode,links -v ${S} ${D}${base_prefix}/${PN}
 
+    install -d ${D}${bindir} # /usr/bin
     # install the binary for julia
     ln -sr ${D}${base_prefix}/${PN}/bin/julia ${D}${bindir}/${PN}
 
@@ -64,12 +43,4 @@ do_install() {
     install -Dm 0755 ${WORKDIR}/${PN}.sh ${D}/etc/profile.d/
 }
 
-# specifiy the files for each package
-## Debug Packages
-FILES:${PN}-dbg += ""
-## Base Packages
 FILES:${PN} += "/etc/profile.d/${PN}.sh ${base_prefix}/${PN}"
-## Docs Packages
-FILES:${PN}-doc += ""
-## Development Packages
-FILES:${PN}-dev += ""
