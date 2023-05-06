@@ -32,7 +32,7 @@ do_install() {
 
     install -d ${D}${bindir} # /usr/bin
     # install the binary for julia
-    ln -sr ${D}${base_prefix}/${PN}/bin/julia ${D}${bindir}/${PN}
+    ln -sr ${D}${base_prefix}/${PN}/bin/julia ${D}${bindir}/julia
 
     # Install `/etc/profile.d` for julia system configuration
     install -d ${D}/etc/profile.d
