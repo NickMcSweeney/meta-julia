@@ -2,6 +2,18 @@
 
 This OpenEmbedded layer provides the Julia runtime, and a few example projects (TODO).
 
+### julia
+
+installs prebuild (tar) Julia pkg into the system
+
+### julia-bin
+
+installs prebuilt (tar) into a single location in `/opt` 
+
+### julia-dev
+
+installs julia from source. (TODO).
+
 ### Variable refrence
 ```
 prefix	        /usr                    /usr
