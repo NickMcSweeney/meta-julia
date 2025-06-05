@@ -11,9 +11,6 @@ SRC_URI = " \
     "
 SRC_URI[sha256sum] = "147626db6b6887bfb6612cb6cd2a48d689806649fae34dc749fddc8375c2c625"
 
-FORTRAN = ",fortran"
-FORTRAN:forcevariable = ",fortran"
-
 EXTERNAL_LIBS = " \
     utf8proc \
     openblas \
@@ -35,10 +32,11 @@ EXTERNAL_LIBS = " \
 BUILD_TOOLS = " \
     libgfortran \
     gcc \
+    gcc-runtime \
     cmake-native \
     python3-native \
     perl-native \
-"
+  "
 
 BBCLASSEXTEND = "native nativesdk"
 
@@ -50,45 +48,67 @@ DEPENDS += " ${BUILD_TOOLS} ${EXTERNAL_LIBS}"
 # Runtime dependencies
 RDEPENDS{PV} += "${EXTERNAL_LIBS}"
 
-S = "${WORKDIR}/${BPN}-${PV}"
-B = "${WORKDIR}/${BPN}-${PV}"
+S = "${WORKDIR}/julia-${PV}"
 
-# Julia's build system has some special flags
+EXTRA_OEMAKE = "\
+    PREFIX=${prefix} \
+    CC='${CC}' \
+    CFLAGS='${TARGET_CFLAGS}' \
+    CXXFLAGS='${TARGET_CXXFLAGS}' \
+    LDFLAGS=${TARGET_LDFLAGS} \
+    LD_LIBRARY_PATH=${RECIPE_SYSROOT}${libdir}:${RECIPE_SYSROOT}${includedir}:${LD_LIBRARY_PATH} \
+    DESTDIR=${D} \
+    LIBDIR=${libdir} \
+    INCLUDEDIR=${includedir} \
+    BUILDROOT=${S} \
+    BUILD_STATIC=no \
+    ARCH=aarch64 \
+    MARCH=aarch64 \
+    MCPU=aarch64 \
+    JULIA_CPU_TARGET=generic \
+    USE_BINARYBUILDER=0 \
+    USE_BINARYBUILDER_LLVM=0 \
+    OPENBLAS_DYNAMIC_ARCH=0 \
+    OPENBLAS_TARGET_ARCH=ARMV8 \
+    USE_BLAS64=1 \
+    BINARY=64 \
+    LIBBLAS=-lopenblas \
+    LIBBLASNAME=libopenblas \
+    USE_SYSTEM_CSL=1 \
+    USE_SYSTEM_LLVM=0 \
+    USE_SYSTEM_LIBUNWIND=1 \
+    USE_SYSTEM_PCRE=1 \
+    USE_SYSTEM_LIBM=1 \
+    USE_SYSTEM_OPENLIBM=1 \
+    USE_SYSTEM_DSFMT=1 \
+    USE_SYSTEM_LIBBLASTRAMPOLINE=1 \
+    USE_SYSTEM_BLAS=1 \
+    USE_SYSTEM_LAPACK=1 \
+    USE_SYSTEM_GMP=1 \
+    USE_SYSTEM_MPFR=1 \
+    USE_SYSTEM_LIBSUITESPARSE=1 \
+    USE_SYSTEM_LIBUV=1 \
+    USE_SYSTEM_UTF8PROC=1 \
+    USE_SYSTEM_MBEDTLS=1 \
+    USE_SYSTEM_LIBSSH2=1 \
+    USE_SYSTEM_NGHTTP2=1 \
+    USE_SYSTEM_CURL=1 \
+    USE_SYSTEM_LIBGIT2=1 \
+    USE_SYSTEM_PATCHELF=1 \
+    USE_SYSTEM_LIBWHICH=1 \
+    USE_SYSTEM_ZLIB=1 \
+    USE_SYSTEM_P7ZIP=1 \
+    USE_SYSTEM_LLD=1 \
+"
 
-TAR := "${STAGING_BINDIR_TARGET}/tar --no-same-owner"
+do_configure() {
+  cp -a ${WORKDIR}/Make.user ${S}/Make.user
+}
+
+do_compile(){
+  oe_runmake
+}
 
 do_install() {
-    # setup logs
-    echo "-- New Install Run --\n" > run_do_install.log
-    echo "VERSION: 0.0.2" >> run_do_install.log
-    echo "Current Directory: ${PWD}" >> run_do_install.log
-    echo "\n=== === ===\n" >> run_do_install.log
-
-    # add make user file
-    cp ${WORKDIR}/Make.user Make.user
-    # update Make.user with additional flags
-    echo "prefix=${prefix}" >> Make.user
-    echo "bindir=${bindir}" >> Make.user
-    echo "ibdir=${libdir}" >> Make.user
-    echo "includedir=${includedir}" >> Make.user
-    echo "sysconfdir=${sysconfdir}" >> Make.user
-    echo "datarootdir=${datadir}" >> Make.user
-    echo "datadir=${datadir}/julia" >> Make.user
-    echo "CFLAGS=$(echo ${TARGET_CFLAGS} | sed 's/-fcanon-prefix-map[[:space:]]*//g')" >> Make.user
-    echo "CXXFLAGS=$(echo ${TARGET_CXXFLAGS} | sed 's/-fcanon-prefix-map[[:space:]]*//g')" >> Make.user
-    echo "LDFLAGS=${TARGET_LDFLAGS}" >> Make.user
-    echo "TAR=${TAR}" >> Make.user
-    echo "USE_SYSTEM_BLAS=1" >> Make.user
-
-    cat Make.user >> run_do_install.log
-    echo "\n===\n" >> run_do_install.log
-    ls >> run_do_install.log
-    echo "\n===\n" >> run_do_install.log
-
-    # compile julia runtime
-    oe_runmake USE_SYSTEM_BLAS=1 release
-
-    # install julia runtime
-    install -d ${D}${prefix}/julia
-    # cp -a ${B} ${D}${prefix}/julia/
+  oe_runmake install
 }
